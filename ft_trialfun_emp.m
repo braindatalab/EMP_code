@@ -21,26 +21,20 @@ hdr   = ft_read_header(cfg.dataset);
 event = ft_read_event(cfg.dataset);
 
 % search for "trigger" events
-value  = [event(find(strcmp('trigger', {event.type}))).value]';
-sample = [event(find(strcmp('trigger', {event.type}))).sample]';
+value  = [event(strcmp('trigger', {event.type})).value]';
+sample = [event(strcmp('trigger', {event.type})).sample]';
 
 % determine the number of samples before and after the trigger
 prestim  = -round(cfg.trialdef.prestim  * hdr.Fs);
 poststim =  round(cfg.trialdef.poststim * hdr.Fs);
 
-% TODO: find how EMP events are defined to extract them from the data (e.g.
-% intervals etc)
-% look for the combination of a trigger "7" followed by a trigger "64"
-% for each trigger except the last one
 trl = [];
-for j = 1:(length(value)-1)
-  trg1 = value(j);
-  trg2 = value(j+1);
-  if trg1==7 && trg2==64
-    trlbegin = sample(j) + prestim;
-    trlend   = sample(j) + poststim;
-    offset   = prestim;
-    newtrl   = [trlbegin trlend offset];
-    trl      = [trl; newtrl];
-  end
+
+for j = 1:length(value)
+  trlbegin = sample(j) + prestim;
+  trlend   = sample(j) + poststim;
+  offset   = prestim;
+  % adding event value as last column
+  newtrl   = [trlbegin trlend offset value(j)];
+  trl      = [trl; newtrl];
 end
