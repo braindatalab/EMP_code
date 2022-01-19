@@ -2,55 +2,59 @@
 % FieldTrip 
 ft_defaults
 %% read data
-datapath = '../EMP_data/EMP01.set';
-hdr = ft_read_header('../EMP_data/EMP01.set');
+datapath = '/Users/work/Desktop/EMP/EMP_data/';
+fn = 'EMP01.set';
+filepath = [datapath fn];
+hdr = ft_read_header(filepath);
 % read events
-ev = ft_read_event('../EMP_data/EMP01.set');
+ev = ft_read_event(filepath);
 % event triggers
-triggers = readtable('../EMP_data/TriggerTable.csv');
+triggers = readtable([datapath 'TriggerTable.csv'] );
 % example for getting specific event triggers
 % scene_mm = triggers.trigger(strcmp(triggers.scene_category,'man-made'));
 % scene_nat = triggers.trigger(strcmp(triggers.scene_category,'natural'));
 %% set preprocessing parameters
 % TODO: discuss parameters, examine data to decide on artifact correction
-cfg.datafile = datapath;
+cfg = [];
+cfg.datafile = filepath;
 cfg.bpfilter = 'yes'; % band-pass filter
 cfg.bpfreq = [1 50];
 cfg.bsfilter = 'yes';
 cfg.bsfreq = [48 52];
+cfg.reref = 'yes';
+cfg.refmethod = 'avg';
 cfg.refchannel = 'all'; % common average reference
 data = ft_preprocessing(cfg);
 %% equal length trials just for checking!!
-% epoch filtered data
-cfg.length = 5;
-cfg.overlap = 0;
-data_seg_eq = ft_redefinetrial(cfg,data);
+% cfg.length = 5;
+% cfg.overlap = 0;
+% data_seg_eq = ft_redefinetrial(cfg,data);
+%% regress out EOG - 71, 72
+eogs = [71,72];
+eeg_data = data.trial{1,1}';
+eog_data = data.trial{1,1}(eogs,:)';
+eeg_data = eeg_data - eog_data*(eog_data\eeg_data);
+data.trial{1,1} = eeg_data';
 %% define trials based on triggers
 cfg = [];
 cfg.trialfun = 'ft_trialfun_emp';
 cfg.trialdef.prestim  = 1; % prestim for baseline
-cfg.trialdef.poststim = 1.5; %500 ms for image presentation + 1 
+cfg.trialdef.poststim = 2; %500 ms for image presentation + 1 
 cfg.trialdef.eventtype = 'trigger';
 cfg.trialdef.eventvalue = triggers.trigger;
-cfg.datafile = datapath;
-cfg_trl = ft_definetrial(cfg);
-% epoch filtered data
-cfg.continuous = 'yes';
-data_seg = ft_preprocessing(cfg_trl);
+cfg.datafile = filepath;
+cfg = ft_definetrial(cfg);
+% split filtered data into trials
+data_seg = ft_redefinetrial(cfg,data);
 %% plots for sanity checks - spectra, topoplots
 % fft
+figure
 cfg = [];
 cfg.method = 'mtmfft';
 cfg.output = 'pow';
-cfg.taper = 'dpss';
 cfg.pad = 'nextpow2'; % improves speed
-cfg.tapsmofrq = 2;
+cfg.tapsmofrq = 0.5;
 cfg.foilim = [1 50];
+cfg.channel = 'eeg';
 freq_seg=ft_freqanalysis(cfg,data_seg);
-% topoplots
-ft_topoplotER(cfg, freq_seg) % topo
-figure
-plot(freq_seg.freq, freq_seg.powspctrm) % power spectrum
-%% compute ICA?
-
-%% EOG channels - 71, 72 
+semilogy(freq_seg.freq,freq_seg.powspctrm); grid on;
