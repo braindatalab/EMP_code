@@ -21,9 +21,9 @@ cfg.bpfilter = 'yes'; % band-pass filter
 cfg.bpfreq = [1 50];
 cfg.bsfilter = 'yes';
 cfg.bsfreq = [48 52];
-cfg.reref = 'yes';
-cfg.refmethod = 'avg';
-cfg.refchannel = 'all'; % common average reference
+%cfg.reref = 'yes';
+%cfg.refmethod = 'avg';
+%cfg.refchannel = 'all'; % common average reference
 data = ft_preprocessing(cfg);
 %% equal length trials just for checking!!
 % cfg.length = 5;
@@ -39,7 +39,7 @@ data.trial{1,1} = eeg_data';
 cfg = [];
 cfg.trialfun = 'ft_trialfun_emp';
 cfg.trialdef.prestim  = 1; % prestim for baseline
-cfg.trialdef.poststim = 2; %500 ms for image presentation + 1 
+cfg.trialdef.poststim = 1.5; %500 ms for image presentation + 1 
 cfg.trialdef.eventtype = 'trigger';
 cfg.trialdef.eventvalue = triggers.trigger;
 cfg.datafile = filepath;
@@ -48,13 +48,20 @@ cfg = ft_definetrial(cfg);
 data_seg = ft_redefinetrial(cfg,data);
 %% plots for sanity checks - spectra, topoplots
 % fft
-figure
 cfg = [];
 cfg.method = 'mtmfft';
 cfg.output = 'pow';
 cfg.pad = 'nextpow2'; % improves speed
-cfg.tapsmofrq = 0.5;
+cfg.tapsmofrq = 2;
 cfg.foilim = [1 50];
 cfg.channel = 'eeg';
 freq_seg=ft_freqanalysis(cfg,data_seg);
+figure
+subplot(1,2,1)
+plot(freq_seg.freq,freq_seg.powspctrm); grid on;
+title('Linear y-axis')
+subplot(1,2,2)
 semilogy(freq_seg.freq,freq_seg.powspctrm); grid on;
+title('Log y-axis')
+sgtitle('Fieldtrip FFT');
+xlim([0 50])
