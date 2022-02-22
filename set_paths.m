@@ -1,1 +1,2 @@
-datapath = '/datasabzi/data/EMP/eeg_eeglab/';
+datapath = '/datasabzi/data/EMP/';
+eegpath = '/datasabzi/data/EMP/eeg_eeglab/';

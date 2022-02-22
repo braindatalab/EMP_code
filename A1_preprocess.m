@@ -2,7 +2,7 @@
 % FieldTrip 
 ft_defaults
 %% read data
-datapath = '/Users/work/Desktop/EMP/EMP_data/';
+%datapath = '/Users/work/Desktop/EMP/EMP_data/';
 fn = 'EMP01.set';
 filepath = [datapath fn];
 hdr = ft_read_header(filepath);
@@ -15,15 +15,12 @@ triggers = readtable([datapath 'TriggerTable.csv'] );
 % scene_nat = triggers.trigger(strcmp(triggers.scene_category,'natural'));
 %% set preprocessing parameters
 % TODO: discuss parameters, examine data to decide on artifact correction
-cfg = [];
+cfg = []; 
 cfg.datafile = filepath;
 cfg.bpfilter = 'yes'; % band-pass filter
 cfg.bpfreq = [1 50];
 cfg.bsfilter = 'yes';
 cfg.bsfreq = [48 52];
-cfg.reref = 'yes';
-cfg.refmethod = 'avg';
-cfg.refchannel = 'all'; % common average reference
 data = ft_preprocessing(cfg);
 %% equal length trials just for checking!!
 % cfg.length = 5;
@@ -64,6 +61,11 @@ ft_topoplotIC(cfg, comp)
 cfg          = [];
 cfg.method   = 'summary';
 tr        = ft_rejectvisual(cfg,data_seg_rs);
+%% apply common average reference
+cfg.reref = 'yes';
+cfg.refmethod = 'avg';
+cfg.refchannel = 'all'; % common average reference
+data_seg_rs_avg = ft_preprocessing(cfg,data_seg_rs);
 %% plots for sanity checks - spectra, topoplots
 % fft
 cfg = [];
