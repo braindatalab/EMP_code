@@ -18,7 +18,7 @@ triggers = readtable([datapath 'TriggerTable.csv'] );
 cfg = [];
 cfg.datafile = filepath;
 cfg.bpfilter = 'yes'; % band-pass filter
-cfg.bpfreq = [2 50];
+cfg.bpfreq = [1 50];
 cfg.bsfilter = 'yes';
 cfg.bsfreq = [48 52];
 cfg.reref = 'yes';
@@ -50,6 +50,16 @@ data_seg = ft_redefinetrial(cfg,data);
 cfg = [];
 cfg.resamplefs = 100;
 data_seg_rs = ft_resampledata(cfg, data_seg);
+%% ICA
+cfg            = [];
+cfg.method     = 'fastica';
+comp           = ft_componentanalysis(cfg, data_seg_rs);
+% plot ICA components
+cfg           = [];
+cfg.component = 1:20; 
+cfg.layout    = 'biosemi64.lay'; 
+cfg.comment   = 'no';
+ft_topoplotIC(cfg, comp)
 %% vis art rej
 cfg          = [];
 cfg.method   = 'summary';

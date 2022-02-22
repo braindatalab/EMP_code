@@ -36,43 +36,6 @@ cfg.layout = 'biosemi64.lay';
 cfg.interactive = 'yes';
 cfg.showoutline = 'yes';
 ft_multiplotER(cfg, manmade, natural)
-%% image novelty power
-cfg = [];
-cfg.trials = new;
-cfg.method = 'mtmfft';
-cfg.output = 'pow';
-cfg.pad = 'nextpow2'; % improves speed
-cfg.tapsmofrq = 2;
-cfg.foilim = [1 50];
-cfg.channel = 'all';
-freq_seg_new =ft_freqanalysis(cfg,data_seg_rs);
-cfg = [];
-cfg.trials = old;
-cfg.method = 'mtmfft';
-cfg.output = 'pow';
-cfg.pad = 'nextpow2'; % improves speed
-cfg.tapsmofrq = 2;
-cfg.foilim = [1 50];
-cfg.channel = 'all';
-freq_seg_old =ft_freqanalysis(cfg,data_seg_rs);
-fc_chans = find(~cellfun(@isempty,regexp(freq_seg_old.label,'^FC')));
-oc_chans = [find(~cellfun(@isempty,regexp(freq_seg_old.label,'^PO'))); ...
-    find(~cellfun(@isempty,regexp(freq_seg_old.label,'^O')))];
-% PSD plots
-figure
-hold on
-semilogy(freq_seg_old.freq,mean(freq_seg_old.powspctrm(fc_chans,:))); grid on;
-semilogy(freq_seg_new.freq,mean(freq_seg_new.powspctrm(fc_chans,:))); grid on;
-legend({'old','new'})
-title('Average PSD of fronto-central (FC*) channels, old vs new image')
-figure
-hold on
-semilogy(freq_seg_old.freq,mean(freq_seg_old.powspctrm(oc_chans,:))); grid on;
-semilogy(freq_seg_new.freq,mean(freq_seg_new.powspctrm(oc_chans,:))); grid on;
-legend({'old','new'})
-title('Average PSD of posterior (O* and PO*) channels, old vs new image')
-% TFR plots
-ft_singleplotTFR(cfg,freq_seg_old);
 %% correct recognition voltage
 cfg = [];
 trials = num2str(data_seg_rs.trialinfo);
@@ -93,7 +56,7 @@ cfg = [];
 trials = num2str(data_seg_rs.trialinfo);
 rem = find(trials(:,4)=='1'); %4th digit indicates rememembered vs forgotten
 forg = find(trials(:,4)=='0');
-cfg.trials = hit; % new images
+cfg.trials = rem; % new images
 rem_img = ft_timelockanalysis(cfg, data_seg_rs);
 cfg = [];
 cfg.trials = forg;
