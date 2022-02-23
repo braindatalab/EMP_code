@@ -27,23 +27,6 @@ data = ft_preprocessing(cfg);
 % cfg.length = 5;
 % cfg.overlap = 0;
 % data_seg_eq = ft_redefinetrial(cfg,data);
-% % downsample
-% cfg = [];
-% cfg.resamplefs = 100;
-% data_seg_eq_rs = ft_resampledata(cfg, data_seg_eq);
-% % fft
-% cfg = [];
-% cfg.method = 'mtmfft';
-% cfg.output = 'pow';
-% cfg.pad = 'nextpow2'; % improves speed
-% cfg.tapsmofrq = 2;
-% cfg.foilim = [1 50];
-% cfg.channel = 'eeg';
-% freq_seg=ft_freqanalysis(cfg,data_seg_eq_rs);
-% figure
-% semilogy(freq_seg.freq,freq_seg.powspctrm); grid on;
-% sgtitle('Fieldtrip FFT');
-% xlim([0 50])
 %% regress out EOG - 71, 72
 eogs = [71,72];
 eeg_data = data.trial{1,1}';

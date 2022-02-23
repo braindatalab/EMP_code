@@ -1,10 +1,6 @@
 function [trl, event] = ft_trialfun_emp(cfg)
 
 % modified trial function from example1
-
-% FT_TRIALFUN_EXAMPLE1 is an example trial function. It searches for events
-% of type "trigger" and specifically for a trigger with value 7, followed
-% by a trigger with value 64.
 %
 % You can use this as a template for your own conditial trial definitions.
 %
