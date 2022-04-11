@@ -1,19 +1,19 @@
-function [interpdata, badchans] = detect_bad_channels(outdir, chantype, data, chanlayout)
-varchans = zeros(length(chantype),1);
-for i=1:1:length(chantype)
-    varchans(i) = var(data.trial{1,1}(chantype(i),:));
+function [interpdata, badchans] = detect_bad_channels(outdir, chanlist, data, chanlayout)
+varchans = zeros(length(chanlist),1);
+for i=1:1:length(chanlist)
+    varchans(i) = var(data.trial{1,1}(chanlist(i),:));
 end
 outliers = isoutlier(varchans); %three scaled median absolute deviations
 if any(outliers)
     bad_channels_fig = figure('visible','off');
     %subplot(1,2,1)
     hold on
-    plot(1:length(chantype),varchans,'o')
+    plot(1:length(chanlist),varchans,'o')
     plot(find(outliers),varchans(outliers),'or')
     xlabel('Channels')
     ylabel('Variance')
     title('Variance of channels')
-    badchans = chantype(outliers);
+    badchans = chanlist(outliers);
     %prepare neighbors for the chosen chantype for interpolation
     cfg = [];
     cfg.layout = chanlayout;
