@@ -1,11 +1,7 @@
-clear all
-
 data_dir = 'C:\Users\Nikita\Documents\preprocessed\';
 current_dir = ['C:\Users\Nikita\Documents\Master thesis\Resources\matlab\nikita\eegmanypipelines\'];
 addpath(genpath([current_dir 'GroupStats-master']));
 subs = dir(data_dir);
-% data_eeg = zeros(size(subs,1)-3+1, );
-
 num_analysis = [3,2,1,0];
 band_range = [4,8,12,30];
 num_channels = 66;
