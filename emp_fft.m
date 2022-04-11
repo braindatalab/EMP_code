@@ -1,5 +1,5 @@
 n = cat(3,dat.trial{:});
-times = linspace(-0.1,0.9,101);
+times = linspace(-0.2,0.8,101);
 for i = 1:1172
     disp(i)
     n11 = squeeze(n(1,10:end,i));
