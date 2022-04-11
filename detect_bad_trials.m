@@ -13,5 +13,8 @@ plot(find(outliers),vartrials(outliers),'or')
 xlabel('Trials')
 ylabel('Variance')
 title('Variance of trials')
+if ~isfolder(outdir)
+    mkdir(outdir)
+end
 saveas(bad_trials_fig,[outdir '/bad_trials.png'])
 clearvars vartrials nbad

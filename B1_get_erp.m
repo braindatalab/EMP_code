@@ -27,9 +27,11 @@ trials = num2str(data_seg_rs.trialinfo);
 new = find(trials(:,2)=='0');
 old = find(trials(:,2)=='1');
 cfg.trials = new; % new images
+cfg.channels = 'eeg';
 manmade = ft_timelockanalysis(cfg, data_seg_rs);
 cfg = [];
 cfg.trials = old;
+cfg.channels = 'eeg';
 natural = ft_timelockanalysis(cfg, data_seg_rs);
 cfg = [];
 cfg.layout = 'biosemi64.lay';

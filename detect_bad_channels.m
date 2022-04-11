@@ -27,7 +27,10 @@ if any(outliers)
     cfg.badchannel = badchan_cell;
     cfg.neighbours = neighbours;
     [interpdata] = ft_channelrepair(cfg, data);
-    saveas(bad_channels_fig,[outdir '/bad_channels.jpg'])
+    if ~isfolder(outdir)
+        mkdir(outdir)
+    end
+    saveas(bad_channels_fig,[outdir '/bad_channels.png'])
 else
     interpdata = data;
     badchans = [];
