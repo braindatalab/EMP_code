@@ -1,109 +1,144 @@
-set_paths
-% load trial indices
-load([results_path 'trial_ind.mat'])
-% load baseline corrected ERP data
-load([results_path 'all_voltage.mat'],'all_voltage_bc')
-% load power data
-load([results_path 'all_timefreq.mat'])
-subs = dir([prep_path '*.mat']);
-% load sample times from 1 subject
-load([subs(1).folder '/' subs(1).name])
-mstime = dat.time{1,1}*1000;
-fsample = dat.fsample;
-num_channels = 64;
-alpha = 0.05;
+% data_dir = 'C:\Users\Nikita\Documents\preprocessed\';
+% current_dir = ['C:\Users\Nikita\Documents\Master thesis\Resources\matlab\nikita\eegmanypipelines\'];
+% addpath(genpath([current_dir 'GroupStats-master']));
+subs = dir(prep_path);
+num_analysis = [3,2,1,0];
+band_range = [4,8,12,30];
+num_channels = 66;
+alpha=0.05;
+fsample=100;
 %% Hypothesis 1
-% N1 between man-made and natural images
-for i=1:size(subs,1)
-    data_sub = all_voltage_bc{i};
-    % permute to match rest of code
-    data_sub = permute(data_sub, [3 1 2]);
+tic
+t = num_analysis(1);
+ds = zeros(size(subs,1)-2,66);
+vars = zeros(size(subs,1)-2,66);
+offset = 3;
+for i=offset:size(subs,1)
+    load([subs(i).folder '/' subs(i).name]);
+    data_sub = zeros(length(dat.trial), size(dat.trial{1,1},1), size(dat.trial{1,1},2));
+    for j=1:length(dat.trial)
+        data_sub(j,:,:) = dat.trial{1,j};
+    end
+    tt = floor(dat.trialinfo(:) * 10^-t) - floor(dat.trialinfo(:) * 10^-(t+1))*10;
+    
     % N1 amplitude calculation
-    n1_time = dsearchn(mstime',[100 200]')';
+    mstime = dat.time{1, 1}*1000;
+    negpeaktime = dsearchn(mstime',[100 200]')';
+    [erpMin,erpMinTime] = min(data_sub(:,:,negpeaktime(1):negpeaktime(2)), [], 3);
+    erpMinTime = ( erpMinTime+negpeaktime(1)-1 );
+    mserpMinTime = mstime( erpMinTime+negpeaktime(1)-1 );
     
-    % average over trials to find min time
-    [erp_min,erp_min_time] = min(data_sub(:,:,n1_time(1):n1_time(2)), [], 3);
-    erp_min_time = (erp_min_time+n1_time(1)-1);
+    data_1 = erpMin(find(tt==1),:);
+    data_2 = erpMin(find(tt==2),:);
     
-    % average for the found time within every component
-    % use the index 
-    n1_manmade = erp_min(trial_ind(i).man,:);
-    n1_natural = erp_min(trial_ind(i).nat,:);
-    
-    % plot n1 across all trials - topomap
-    
-    % effect of N1 (mean and var) 
-    % mean difference
-    ds(i,:) = mean(n1_manmade,1) - mean(n1_natural,1);  
-    % variance 
-    v_1 = var(n1_manmade,0,1);  
-    v_2 = var(n1_natural,0,1); 
-    vars(i, :) = v_1 ./ size(n1_manmade,1) + v_2 ./ size(n1_natural,1); 
+    % Effect of N1 (mean and var) between natural and manmade pics using
+    % the mean difference
+    ds(i-offset+1,:) = mean(data_1,1) - mean(data_2,1);  % mean difference of both classes per subject
+    v_1 = var(data_1,0,1);  v_2 = var(data_2,0,1);  % variances of both classes per subject
+    vars(i-offset+1, :) = v_1 ./ size(data_1,1)  + v_2 ./ size(data_2,1); 
+  
 end
-% Group analysis - equal weighting of mean difference 
+
+% Group analysis Equal weighting of mean difference 
 for ic = 1:num_channels
     [p_FE, p_RE] = equal_weighting(ds(:,ic), vars(:,ic));
-    pval_eqweight_re(ic) = p_RE; 
+    %     ps_meanDiff_equal_FE(idx_nrep, idx_mu) = p_FE;  
+    ps_meanDiff_equal_RE(ic) = p_RE; 
 end
-pval_eqweight_re = pval_eqweight_re';
-sig_pval_randeff_eqweight = pval_eqweight_re;
-sig_pval_randeff_eqweight(sig_pval_randeff_eqweight > (alpha)) = 0;
+ps_meanDiff_equal_RE = ps_meanDiff_equal_RE';
+sig_ps_meanDiff_equal_RE = ps_meanDiff_equal_RE;
+sig_ps_meanDiff_equal_RE(sig_ps_meanDiff_equal_RE > (alpha)) = 0;
 
 % FDR across channels
-p = mafdr(pval_eqweight_re,'BHFDR',true);
+p_size = size(ps_meanDiff_equal_RE);
+p = mafdr(ps_meanDiff_equal_RE,'BHFDR',true);
+p = reshape(double(py.array.array('d', p)), [p_size])';
 p(p > (alpha)) = 0;
+
+% permutation based multiple test correction could be implemented
+toc
 %% Hypothesis 2
-% EEG voltage at fronto-central channels 
-% alpha at fronto-central channels
-% theta at posterior
-% get channel indices
-fc_chans = find(~cellfun(@isempty,regexp(dat.label,'^FC')));
-post_chans = [find(~cellfun(@isempty,regexp(dat.label,'^PO'))); ...
-    find(~cellfun(@isempty,regexp(dat.label,'^O')))];
-% frequencies from spectrogram
-freqs = linspace(0,50,11);
-% time range
+t = num_analysis(2); %The select the integer from the event code
+
+% Get the times from a asample file
+load([subs(3).folder '\' subs(3).name]);
 time_range = [300 500];
+mstime = dat.time{1, 1}*1000;
+clearvars 'dat'
 rtime = dsearchn(mstime',time_range')';
-for i = size(subs,1)
-    data_sub = all_voltage_bc{i};
-    % permute to match rest of code
-    data_sub = permute(data_sub, [3 1 2]);
-    % extracting the indexes in times array in the time_range [300 500]
-    erptime = dsearchn(mstime',time_range')'; 
-    % ERP data between [300;500] at FC channels
-    % 
-    erp_old = data_sub(trial_ind(i).old,fc_chans,erptime(1):erptime(2));
-    erp_new = data_sub(trial_ind(i).new,fc_chans,erptime(1):erptime(2));  
-    % get alpha power at FC channels and theta at posterior
-    data_sub_power = all_time_freq{i};
-    alpha_pow_old = data_sub_power(fc_chans,trial_ind(i).old,freqs>8&freqs<13)';
-    alpha_pow_new = data_sub_power(fc_chans,trial_ind(i).new,freqs>8&freqs<13)';
-    theta_pow_old = data_sub_power(post_chans,trial_ind(i).old,freqs>4&freqs<7)';
-    theta_pow_new = data_sub_power(post_chans,trial_ind(i).new,freqs>4&freqs<7)';
+total_tnum = (((time_range(2) - time_range(1))*fsample)/1000) + 1;
+
+% Initialising the arrays for storing the effect sizes and its variances
+% for all the subjects and different EEG features
+erp_ds = zeros(size(subs,1)-2, 66, total_tnum);
+erp_vars = zeros(size(subs,1)-2, 66, total_tnum);
+
+theta_ds = zeros(size(subs,1)-2, 66);
+theta_vars = zeros(size(subs,1)-2, 66);
+alpha_ds = zeros(size(subs,1)-2, 66);
+alpha_vars = zeros(size(subs,1)-2, 66);
+
+offset = 3;
+for i=offset:size(subs,1)
+    disp(i-offset+1)
+    load([subs(i).folder '\' subs(i).name]); % loading the FT preprocessed data
+    data_sub = zeros(length(dat.trial), size(dat.trial{1,1},1), size(dat.trial{1,1},2)); % Init an array trials x channels x num points
+    for j=1:length(dat.trial)
+        data_sub(j,:,:) = dat.trial{1,j};
+    end
+    tt = floor(dat.trialinfo(:) * 10^-t) - floor(dat.trialinfo(:) * 10^-(t+1))*10; % extracting the trial type (e.g. old vs new, manmade vs natural)
     
-    % Effect sizes calculation (mean and var)
+    mstime = dat.time{1, 1}*1000;
+    erptime = dsearchn(mstime',time_range')'; % extracting the indexes in times array in the time_range [300 500]
+    
+    %ERP data between [300ms 500ms] calculation
+    data_old = data_sub(find(tt==0),:,erptime(1):erptime(2));
+    data_new = data_sub(find(tt==1),:,erptime(1):erptime(2)); 
+   
+    % Power calculation 
+    % for old pics
+    data_ch = permute(data_old, [3, 1, 2]);
+    data_ch_size = size(data_ch);
+    data_ch = data_ch(:,:);
+    [p,f] = pspectrum(data_ch, fsample);
+    data_ch = reshape(p,[length(f), data_ch_size(2), data_ch_size(3)]);
+    thetatime = dsearchn(f,[4 8]')';
+    alphatime = dsearchn(f,[8 12]')';    
+    data_theta_old = squeeze(mean(data_ch(thetatime(1):thetatime(2), :,:),1));
+    data_alpha_old = squeeze(mean(data_ch(alphatime(1):alphatime(2), :,:),1));
+    
+    % for new pics
+    data_ch = permute(data_new, [3, 1, 2]);
+    data_ch_size = size(data_ch);
+    data_ch = data_ch(:,:);
+    [p,f] = pspectrum(data_ch, fsample);
+    data_ch = reshape(p,[length(f), data_ch_size(2), data_ch_size(3)]);
+    thetatime = dsearchn(f,[4 8]')';
+    alphatime = dsearchn(f,[8 12]')';    
+    data_theta_new = squeeze(mean(data_ch(thetatime(1):thetatime(2), :,:),1));
+    data_alpha_new = squeeze(mean(data_ch(alphatime(1):alphatime(2), :,:),1));
+
+    % Effect sizes calculation (mean and var) between old and new pics using
+    % the conditional mean difference
+    
     % ERP
-    erp_ds(i,:,:) = mean(erp_new,1) - mean(erp_old,1);  
-    v_new = var(erp_new,0,1);  
-    v_old = var(erp_old,0,1); 
-    erp_vars(i, :,:) = v_new ./ size(erp_new,1)  + v_old ./ size(erp_old,1); 
+    erp_ds(i-offset+1,:,:) = mean(data_new,1) - mean(data_old,1);  % mean difference of both classes per subject
+    v_new = var(data_new,0,1);  v_old = var(data_old,0,1);  % variances of both classes per subject
+    erp_vars(i-offset+1, :,:) = v_new ./ size(data_new,1)  + v_old ./ size(data_old,1); 
     
-    % theta
-    theta_ds(i,:) = mean(theta_pow_new,1) - mean(theta_pow_old,1);  % mean difference of both classes per subject
-    v_new = var(theta_pow_new,0,1);  
-    v_old = var(theta_pow_old,0,1);  
-    theta_vars(i, :) = v_new ./ size(theta_pow_new,1)  + v_old ./ size(theta_pow_old,1); 
+    % Theta
+    theta_ds(i-offset+1,:) = mean(data_theta_new,1) - mean(data_theta_old,1);  % mean difference of both classes per subject
+    v_new = var(data_theta_new,0,1);  v_old = var(data_theta_old,0,1);  % variances of both classes per subject
+    theta_vars(i-offset+1, :) = v_new ./ size(data_theta_new,1)  + v_old ./ size(data_theta_old,1); 
 
     %Alpha
-    alpha_ds(i,:) = mean(alpha_pow_new,1) - mean(alpha_pow_old,1);  % mean difference of both classes per subject
-    v_new = var(alpha_pow_new,0,1);  
-    v_old = var(alpha_pow_old,0,1);  
-    alpha_vars(i, :) = v_new ./ size(alpha_pow_new,1)  + v_old ./ size(alpha_pow_old,1); 
-
+    alpha_ds(i-offset+1,:) = mean(data_alpha_new,1) - mean(data_alpha_old,1);  % mean difference of both classes per subject
+    v_new = var(data_alpha_new,0,1);  v_old = var(data_alpha_old,0,1);  % variances of both classes per subject
+    alpha_vars(i-offset+1, :) = v_new ./ size(data_alpha_new,1)  + v_old ./ size(data_alpha_old,1); 
 end
 
-% Group analysis - equal weighting of mean difference
+% Group analysis Equal weighting of mean difference
+clearvars 'ps_meanDiff_equal_RE_theta' 'ps_meanDiff_equal_RE_alpha' 'ps_meanDiff_equal_RE_erp' 'sig_ps_meanDiff_equal_RE_theta' 'sig_ps_meanDiff_equal_RE_alpha' 'sig_ps_meanDiff_equal_RE_erp' 'p_theta' 'p_alpha' 'p_erp'
 % Power 
 for ic = 1:num_channels
     [p_FE, p_RE] = equal_weighting(theta_ds(:,ic), theta_vars(:,ic)); % theta
@@ -113,6 +148,7 @@ for ic = 1:num_channels
     ps_meanDiff_equal_RE_alpha(ic) = p_RE; % alpha
 end
 
+
 ps_meanDiff_equal_RE_theta = ps_meanDiff_equal_RE_theta';
 sig_ps_meanDiff_equal_RE_theta = ps_meanDiff_equal_RE_theta; % 
 sig_ps_meanDiff_equal_RE_theta(sig_ps_meanDiff_equal_RE_theta > (alpha)) = 0; % sig_ps_meanDiff_equal_RE_theta contains p values without correction
@@ -120,6 +156,7 @@ sig_ps_meanDiff_equal_RE_theta(sig_ps_meanDiff_equal_RE_theta > (alpha)) = 0; % 
 ps_meanDiff_equal_RE_alpha = ps_meanDiff_equal_RE_alpha';
 sig_ps_meanDiff_equal_RE_alpha = ps_meanDiff_equal_RE_alpha;
 sig_ps_meanDiff_equal_RE_alpha(sig_ps_meanDiff_equal_RE_alpha > (alpha)) = 0; % sig_ps_meanDiff_equal_RE_alpha contains p values without correction
+
 
 % FDR across channels
 p_size = size(ps_meanDiff_equal_RE_theta);
@@ -131,6 +168,7 @@ p_size = size(ps_meanDiff_equal_RE_alpha);
 p_alpha = mafdr(ps_meanDiff_equal_RE_alpha,'BHFDR',true);
 p_alpha = reshape(double(py.array.array('d', p_alpha)), [p_size]);
 p_alpha(p_alpha > (alpha)) = 0; % p_alpha contains FDR corrected p values
+
 
 % Group analysis Equal weighting of mean difference  ERP
 for ic = 1:size(erp_ds,2) % loop over channels
@@ -153,10 +191,25 @@ for ic = 1:size(erp_ds,2)
 end
 p_erp = p_erp';
 
+% Next step: permutation based multiple test correction could be implemented
+
 %% Hypothesis 3
+t = num_analysis(3); %The select the integer from the event code
 
+clearvars 'erp_ds' 'erp_vars' 'pow_ds' 'pow_vars'
+% Get the times from a asample file
+
+offset = 3;
 for i=offset:size(subs,1)
-
+    disp(i-offset+1)
+    load([subs(i).folder '\' subs(i).name]); % loading the FT preprocessed data
+    data_sub = zeros(length(dat.trial), size(dat.trial{1,1},1), size(dat.trial{1,1},2)); % Init an array trials x channels x num points
+    for j=1:length(dat.trial)
+        data_sub(j,:,:) = dat.trial{1,j};
+    end
+    tt = floor(dat.trialinfo(:) * 10^-t) - floor(dat.trialinfo(:) * 10^-(t+1))*10; % extracting the trial type (e.g. old vs new, manmade vs natural)
+    
+    %ERP data between [300ms 500ms] calculation
     data_hit = data_sub(find(tt==1),:,:);
     data_miss = data_sub(find(tt==2),:,:); 
    

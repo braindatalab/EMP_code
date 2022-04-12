@@ -32,21 +32,8 @@ for i = 1:length(prep_list)
     end
     p_all_abs = abs(p_all);
     all_time_freq{i} = p_all_abs;
-    %imagesc(squeeze(p_all_abs(1,1,:,:))); axis xy
-    % all_ch = squeeze(mean(p_all_abs,1));
-    % imagesc(squeeze(mean(all_ch(trial_ind.miss,:,:),1))); axis xy
-    % yt = get(gca,'Ytick');
-    % frq = round(linspace(0,50,length(yt)),1);
-    % set(gca, 'YTick',yt,'YTickLabel',frq)
-    % xt = get(gca,'Xtick');
-    % times1 = round(linspace(-0.2,0.8,length(xt)),2);
-    % set(gca, 'XTick',xt,'XTickLabel',times1)
-    % xlabel('Times, s')
-    % ylabel('Freqs, Hz')
-    % title('Pspectrum output for subject 1, miss trials, avg of all channels')
-    % colorbar
     toc
 end
-save('/home/space/uniml/veronika/results/EMP/all_voltage.mat','all_voltage','all_voltage_bc')
-save('/home/space/uniml/veronika/results/EMP/all_timefreq.mat','all_time_freq')
-save('/home/space/uniml/veronika/results/EMP/trial_ind.mat','trial_ind')
+save([results_path '/all_voltage.mat'],'all_voltage','all_voltage_bc')
+save([results_path '/all_time_freq.mat'],'all_time_freq','f')
+save([results_path '/trial_ind.mat'],'trial_ind')
