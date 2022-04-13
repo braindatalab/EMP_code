@@ -18,19 +18,15 @@ for i=1:size(subs,1)
     data_sub = all_voltage_bc{i};
     % permute to match rest of code
     data_sub = permute(data_sub, [3 1 2]);
-    % N1 amplitude calculation
-    n1_time = dsearchn(mstime',[100 200]')';
-    
-    % average over trials to find min time
-    [erp_min,erp_min_time] = min(data_sub(:,:,n1_time(1):n1_time(2)), [], 3);
-    erp_min_time = (erp_min_time+n1_time(1)-1);
-    
-    % average for the found time within every component
-    % use the index 
-    n1_manmade = erp_min(trial_ind(i).man,:);
-    n1_natural = erp_min(trial_ind(i).nat,:);
-    
-    % plot n1 across all trials - topomap
+    % N1 component time
+    n1_range = dsearchn(mstime',[100 200]')';
+    % average over trials and channels to find min time
+    avg_data = squeeze(mean(mean(data_sub,1),2));
+    [n1_amp,n1_idx] = min(avg_data(n1_range(1):n1_range(2)));
+    n1_time = n1_idx+n1_range(1)-1;
+    % average for the found time within every condition
+    n1_manmade = mean(data_sub(trial_ind(i).man,:,n1_time),1);
+    n1_natural = mean(data_sub(trial_ind(i).nat,:,n1_time),1);
     
     % effect of N1 (mean and var) 
     % mean difference
