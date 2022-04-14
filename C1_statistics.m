@@ -15,6 +15,7 @@ alpha = 0.05;
 %% Hypothesis 1
 % N1 between man-made and natural images
 for i=1:size(subs,1)
+    disp(subs(i).name(1:end-4))
     data_sub = all_voltage_bc{i};
     % permute to match rest of code
     data_sub = permute(data_sub, [3 1 2]);
@@ -25,8 +26,8 @@ for i=1:size(subs,1)
     [n1_amp,n1_idx] = min(avg_data(n1_range(1):n1_range(2)));
     n1_time = n1_idx+n1_range(1)-1;
     % average for the found time within every condition
-    n1_manmade = mean(data_sub(trial_ind(i).man,:,n1_time),1);
-    n1_natural = mean(data_sub(trial_ind(i).nat,:,n1_time),1);
+    n1_manmade = data_sub(trial_ind(i).man,:,n1_time);
+    n1_natural = data_sub(trial_ind(i).nat,:,n1_time);
     
     % effect of N1 (mean and var) 
     % mean difference
@@ -43,11 +44,11 @@ for ic = 1:num_channels
 end
 pval_eqweight_re = pval_eqweight_re';
 sig_pval_randeff_eqweight = pval_eqweight_re;
-sig_pval_randeff_eqweight(sig_pval_randeff_eqweight > (alpha)) = 0;
+sig_pval_randeff_eqweight(sig_pval_randeff_eqweight > (alpha)) = NaN;
 
 % FDR across channels
 p = mafdr(pval_eqweight_re,'BHFDR',true);
-p(p > (alpha)) = 0;
+p(p > (alpha)) = NaN;
 %% Hypothesis 2
 % EEG voltage at fronto-central channels 
 % alpha at fronto-central channels
