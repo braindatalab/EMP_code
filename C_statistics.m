@@ -1,3 +1,4 @@
+%%load files
 set_paths
 % load trial indices
 load([results_path 'trial_ind.mat'])
@@ -6,8 +7,8 @@ load([results_path 'all_voltage.mat'],'all_voltage_bc')
 % load power data
 %load([results_path 'all_time_freq.mat'])
 load([results_path 'all_time_freq_new.mat'],'all_time_freq_new')
+%% load sample times from 1 subject
 subs = dir([prep_path '*.mat']);
-% load sample times from 1 subject
 load([subs(1).folder '/' subs(1).name])
 mstime = dat.time{1,1}*1000;
 fsample = dat.fsample;
@@ -47,12 +48,12 @@ save([results_path 'p/p_val_H1.mat'],'p_n1_uncorr','p_n1_fdr', 'z_re');
 fc_chans = find(~cellfun(@isempty,regexp(dat.label,'^FC')));
 post_chans = [find(~cellfun(@isempty,regexp(dat.label,'^PO'))); ...
     find(~cellfun(@isempty,regexp(dat.label,'^O')))];
-% frequencies from spectrogram
-freqs = linspace(0,50,11);
 % time range
 time_range = [300 500];
 rtime = dsearchn(mstime',time_range')';
 for i = 1:size(subs,1)
+    % TODO: subsample data with an overlap
+    % TODO: permutations?
     disp(subs(i).name(1:end-4))
     data_sub = all_voltage_bc{i};
     % permute to match rest of code
@@ -63,12 +64,13 @@ for i = 1:size(subs,1)
     % channels and times
     voltage_old = data_sub(trial_ind(i).old,fc_chans,time_idx(1):time_idx(2));
     voltage_new = data_sub(trial_ind(i).new,fc_chans,time_idx(1):time_idx(2));
-    % get alpha power at post channels and theta at fc channels 
+    % get alpha power at post channels and theta at fc channels
+    % avg within freq band
     data_sub_power = log(all_time_freq{i});
-    alpha_pow_old = data_sub_power(post_chans,trial_ind(i).old,freqs>8&freqs<13)';
-    alpha_pow_new = data_sub_power(post_chans,trial_ind(i).new,freqs>8&freqs<13)';
-    theta_pow_old = data_sub_power(fc_chans,trial_ind(i).old,freqs>4&freqs<7)';
-    theta_pow_new = data_sub_power(fc_chans,trial_ind(i).new,freqs>4&freqs<7)';
+    alpha_pow_old = squeeze(mean(data_sub_power(post_chans,trial_ind(i).old,f>=8&f<13,:),3));
+    alpha_pow_new = squeeze(mean(data_sub_power(post_chans,trial_ind(i).new,f>=8&f<13,:),3));
+    theta_pow_old = squeeze(mean(data_sub_power(fc_chans,trial_ind(i).old,f>=4&f<7,:),3));
+    theta_pow_new = squeeze(mean(data_sub_power(fc_chans,trial_ind(i).new,f>=4&f<7,:),3));
     
     % Effect sizes calculation (mean and var)
     % voltage
@@ -87,12 +89,12 @@ for i = 1:size(subs,1)
         var(alpha_pow_old,0,1) ./ size(theta_pow_old,1); 
 end
 %%
-[p_volt_uncorr, p_volt_fdr] = group_analysis(voltage_ds,voltage_vars,alpha);
-[p_alpha_uncorr, p_alpha_fdr]=group_analysis(alpha_ds,alpha_vars,alpha);
-[p_theta_uncorr, p_theta_fdr]=group_analysis(theta_ds,theta_vars,alpha);
+[p_volt_uncorr, p_volt_fdr, z_re_volt] = group_analysis(voltage_ds,voltage_vars,alpha);
+[p_alpha_uncorr, p_alpha_fdr, z_re_alpha]=group_analysis(alpha_ds,alpha_vars,alpha);
+[p_theta_uncorr, p_theta_fdr, z_re_theta]=group_analysis(theta_ds,theta_vars,alpha);
 
 save([results_path 'p/p_val_H2.mat'],'p_erp_fdr','sig_pval_eqw_re_erp',...
     'p_alpha_fdr','sig_pval_eqw_re_alpha',...
-    'p_theta_fdr','sig_pval_eqw_re_theta')
+    'p_theta_fdr','sig_pval_eqw_re_theta', 'z_re_vol','z_re_alpha','z_re_theta')
 %% Hypothesis 3
 

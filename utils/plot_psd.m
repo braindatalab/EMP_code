@@ -1,4 +1,4 @@
-function plot_topo_spectrum(report_path_sub, data, layout, desc)
+function plot_psd(report_path_sub, data, layout, desc)
 %run FFT on the data
 cfg = [];
 cfg.channel = 'eeg';

@@ -35,5 +35,5 @@ for i = 1:length(prep_list)
     toc
 end
 save([results_path '/all_voltage.mat'],'all_voltage','all_voltage_bc')
-save([results_path '/all_time_freq.mat'],'all_time_freq','f')
+save([results_path '/all_time_freq.mat'],'all_time_freq','f','-v7.3')
 save([results_path '/trial_ind.mat'],'trial_ind')
