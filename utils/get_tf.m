@@ -17,16 +17,16 @@ for i = 1:length(all_voltage_bc)
         fprintf('channel %d\n', c)
         for t = 1:ntri
             data_tri = squeeze(data_sub(c,20:end,t));
-            data_tri_zp = [zeros(59,1);data_tri';zeros(59,1)];
-            [p,f,time] = spectrogram(data_tri_zp,50,20,50,fs);
+            [p,f,time] = spectrogram(data_tri,10,0,50,fs);
             p_all(c,t,:,:) = p;
         end
     end
-    all_time_freq_new{i} = abs(p_all);
+    all_time_freq_new{i} = abs(p_all).^2;
 end
 save([results_path '/all_time_freq_new.mat'],'all_time_freq_new','f')
 %% plot 1 subject 1 trial
-t1 = squeeze(mean(p_all_abs(1,:,:,:),2));
+c1 = squeeze(all_time_freq_new{1}(1,:,:,:));
+t1 = squeeze(mean(c1,1));
 imagesc(t1);
 axis xy;
 %% compare with ft

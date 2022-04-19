@@ -25,12 +25,12 @@ for i = 1:length(prep_list)
     for c = 1:nchan
         fprintf('channel %d\n', c)
         for t = 1:ntri
-            data_i = squeeze(data(c,20:end,t));
-            [p,f,~] = spectrogram(data_i,20,10,20,100);
+            data_i = squeeze(data(c,22:end,t));
+            [p,f,~] = spectrogram(data_i,10,0,50,fs);
             p_all(c,t,:,:) = p;
         end
     end
-    p_all_abs = abs(p_all);
+    p_all_abs = abs(p_all).^2;
     all_time_freq{i} = p_all_abs;
     toc
 end

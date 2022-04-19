@@ -4,7 +4,8 @@ load([results_path 'trial_ind.mat'])
 % load baseline corrected ERP data
 load([results_path 'all_voltage.mat'],'all_voltage_bc')
 % load power data
-load([results_path 'all_timefreq.mat'])
+%load([results_path 'all_time_freq.mat'])
+load([results_path 'all_time_freq_new.mat'],'all_time_freq_new')
 subs = dir([prep_path '*.mat']);
 % load sample times from 1 subject
 load([subs(1).folder '/' subs(1).name])
@@ -36,8 +37,8 @@ for i=1:size(subs,1)
     v_2 = var(n1_natural,0,1); 
     vars(i, :) = v_1 ./ size(n1_manmade,1) + v_2 ./ size(n1_natural,1); 
 end
-[p_n1_uncorr, p_n1_fdr] = group_analysis(ds, vars,alpha);
-save([results_path 'p/p_val_H1.mat'],'p_n1_uncorr','p_n1_fdr');
+[p_n1_uncorr, p_n1_fdr, z_re] = group_analysis(ds, vars,alpha);
+save([results_path 'p/p_val_H1.mat'],'p_n1_uncorr','p_n1_fdr', 'z_re');
 %% Hypothesis 2
 % EEG voltage at fronto-central channels 
 % alpha at posterior channels
@@ -62,9 +63,8 @@ for i = 1:size(subs,1)
     % channels and times
     voltage_old = data_sub(trial_ind(i).old,fc_chans,time_idx(1):time_idx(2));
     voltage_new = data_sub(trial_ind(i).new,fc_chans,time_idx(1):time_idx(2));
-    
     % get alpha power at post channels and theta at fc channels 
-    data_sub_power = all_time_freq{i};
+    data_sub_power = log(all_time_freq{i});
     alpha_pow_old = data_sub_power(post_chans,trial_ind(i).old,freqs>8&freqs<13)';
     alpha_pow_new = data_sub_power(post_chans,trial_ind(i).new,freqs>8&freqs<13)';
     theta_pow_old = data_sub_power(fc_chans,trial_ind(i).old,freqs>4&freqs<7)';
@@ -86,6 +86,7 @@ for i = 1:size(subs,1)
     alpha_vars(i,:,:) = var(alpha_pow_new,0,1) ./ size(theta_pow_new,1) + ...
         var(alpha_pow_old,0,1) ./ size(theta_pow_old,1); 
 end
+%%
 [p_volt_uncorr, p_volt_fdr] = group_analysis(voltage_ds,voltage_vars,alpha);
 [p_alpha_uncorr, p_alpha_fdr]=group_analysis(alpha_ds,alpha_vars,alpha);
 [p_theta_uncorr, p_theta_fdr]=group_analysis(theta_ds,theta_vars,alpha);

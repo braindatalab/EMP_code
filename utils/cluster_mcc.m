@@ -1,5 +1,5 @@
-% cluster-level correction 
-% prepare labels in FT
+%% cluster-level correction 
+% prepare labels of neighbors in FT
 load('layout.mat')
 cfg = [];
 cfg.layout = layout;
