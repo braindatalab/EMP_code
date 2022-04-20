@@ -20,13 +20,24 @@ for i = 1:length(prep_list)
     baseline = mean(data(:,1:20,:),2); % mean of 200 ms before stimulus
     data_bc = bsxfun(@minus,data,baseline);
     all_voltage_bc{i} = data_bc;
+    %% split into overlapping windows of 10 samples with 5 sample overlap
+    data_no_bl = data_bc(:,22:end,:);
+    data_win_all = [];
+    for w = 1:5:75
+        idx1 = w;
+        idx2 = min(idx1+10, 80);
+        tmp = mean(data_no_bl(:,idx1:idx2,:),2);
+        data_win_all = cat(2, data_win_all, tmp);
+    end
+    all_voltage_window{i} = data_win_all;
     %% compute time-frequency
     fprintf('\ncomputing time-frequency for %d channels, %d trials\n',nchan, ntri)
     for c = 1:nchan
         fprintf('channel %d\n', c)
         for t = 1:ntri
             data_i = squeeze(data(c,22:end,t));
-            [p,f,~] = spectrogram(data_i,10,0,50,fs);
+            % 100 ms windows, 50 ms overlap
+            [p,f,time] = spectrogram(data_i,10,5,50,100);
             p_all(c,t,:,:) = p;
         end
     end
@@ -34,6 +45,6 @@ for i = 1:length(prep_list)
     all_time_freq{i} = p_all_abs;
     toc
 end
-save([results_path '/all_voltage.mat'],'all_voltage','all_voltage_bc')
+save([results_path '/all_voltage.mat'],'all_voltage','all_voltage_bc','all_voltage_window')
 save([results_path '/all_time_freq.mat'],'all_time_freq','f','-v7.3')
 save([results_path '/trial_ind.mat'],'trial_ind')
