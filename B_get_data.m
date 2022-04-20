@@ -23,9 +23,11 @@ for i = 1:length(prep_list)
     %% split into overlapping windows of 10 samples with 5 sample overlap
     data_no_bl = data_bc(:,22:end,:);
     data_win_all = [];
+    idx = [];
     for w = 1:5:75
         idx1 = w;
         idx2 = min(idx1+10, 80);
+        idx = [idx; idx1 idx2];
         tmp = mean(data_no_bl(:,idx1:idx2,:),2);
         data_win_all = cat(2, data_win_all, tmp);
     end
@@ -45,6 +47,7 @@ for i = 1:length(prep_list)
     all_time_freq{i} = p_all_abs;
     toc
 end
+save([results_path '/window_overlap_idx.mat'],'idx')
 save([results_path '/all_voltage.mat'],'all_voltage','all_voltage_bc','all_voltage_window')
 save([results_path '/all_time_freq.mat'],'all_time_freq','f','-v7.3')
 save([results_path '/trial_ind.mat'],'trial_ind')

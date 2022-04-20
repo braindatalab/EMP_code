@@ -17,7 +17,8 @@ for i = 1:length(all_voltage_bc)
         fprintf('channel %d\n', c)
         for t = 1:ntri
             data_tri = squeeze(data_sub(c,20:end,t));
-            [p,f,time] = spectrogram(data_tri,10,0,50,fs);
+            % 100 ms windows, 50 ms overlap
+            [p,f,time] = spectrogram(data_tri,10,5,50,fs);
             p_all(c,t,:,:) = p;
         end
     end
