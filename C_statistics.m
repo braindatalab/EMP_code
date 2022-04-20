@@ -35,7 +35,7 @@ for i=1:size(subs,1)
     v_2 = var(n1_natural,0,1); 
     vars(i, :) = v_1 ./ size(n1_manmade,1) + v_2 ./ size(n1_natural,1); 
 end
-[p_n1_uncorr, p_n1_fdr, z_re] = group_analysis(ds, vars,alpha);
+[p_n1_uncorr, p_n1_fdr, z_re] = group_analysis(ds, vars,num_channels,alpha);
 save([results_path 'p/p_val_H1.mat'],'p_n1_uncorr','p_n1_fdr', 'z_re');
 %% Hypothesis 2
 % old vs new images
@@ -48,15 +48,13 @@ post_chans = [find(~cellfun(@isempty,regexp(dat.label,'^PO'))); ...
     find(~cellfun(@isempty,regexp(dat.label,'^O')))];
 % find the 300-500 ms time range
 load([results_path '/window_overlap_idx.mat'])
-time_range = [30 50]; %in samples
 windows = find(idx(:,1) > 30 & idx(:,1) < 50 & idx(:,2) < 52);
 for i = 1:size(subs,1)
     disp(subs(i).name(1:end-4))
     % use averaged voltage over 100 ms windows with 5 ms overlap
     data_sub = all_voltage_window{i};
     data_sub_power = permute(log(all_time_freq{i}),[2 1 3 4]);
-    % voltage data between [300;500] at FC channels - average amplitude between
-    % channels and times
+    % voltage data between [300;500] at FC channels
     voltage_old = permute(data_sub(fc_chans, windows, trial_ind(i).old),[3 1 2]);
     voltage_new = permute(data_sub(fc_chans, windows, trial_ind(i).new), [3 1 2]);
     % get alpha power at post channels and theta at fc channels
@@ -64,27 +62,24 @@ for i = 1:size(subs,1)
     alpha_pow_old = squeeze(mean(data_sub_power(trial_ind(i).old,post_chans,f>=8&f<13,windows),3));
     alpha_pow_new = squeeze(mean(data_sub_power(trial_ind(i).new,post_chans,f>=8&f<13,windows),3));
     theta_pow_old = squeeze(mean(data_sub_power(trial_ind(i).old,fc_chans,f>=4&f<7,windows),3));
-    theta_pow_new = squeeze(mean(data_sub_power(trial_ind(i).new,fc_chans,f>=4&f<7,windows),3));
-    
-    % Effect sizes calculation (mean and var)
+    theta_pow_new = squeeze(mean(data_sub_power(trial_ind(i).new,fc_chans,f>=4&f<7,windows),3)); 
+    % effect sizes calculation (mean and var)
     % voltage
     voltage_new_old_ds(i,:,:) = mean(voltage_new,1) - mean(voltage_old,1);  
     voltage_new_old_vars(i,:,:) = var(voltage_new,0,1)./ size(voltage_new,1)+ ...
-        var(voltage_old,0,1) ./ size(voltage_old,1); 
-    
+        var(voltage_old,0,1) ./ size(voltage_old,1);    
     % theta
     theta_ds(i,:,:) = mean(theta_pow_new,1) - mean(theta_pow_old,1);  % mean difference of both classes per subject
     theta_vars(i,:,:) = var(theta_pow_new,0,1) ./ size(theta_pow_new,1) + ...
         var(theta_pow_old,0,1) ./ size(theta_pow_old,1); 
-
     % alpha
     alpha_ds(i,:,:) = mean(alpha_pow_new,1) - mean(alpha_pow_old,1);  % mean difference of both classes per subject
     alpha_vars(i,:,:) = var(alpha_pow_new,0,1) ./ size(theta_pow_new,1) + ...
         var(alpha_pow_old,0,1) ./ size(theta_pow_old,1); 
 end
-[p_volt_uncorr, p_volt_fdr, z_re_volt] = group_analysis(voltage_new_old_ds,voltage_new_old_vars,alpha);
-[p_alpha_uncorr, p_alpha_fdr, z_re_alpha]=group_analysis(alpha_ds,alpha_vars,alpha);
-[p_theta_uncorr, p_theta_fdr, z_re_theta]=group_analysis(theta_ds,theta_vars,alpha);
+[p_volt_uncorr, p_volt_fdr, z_re_volt] = group_analysis(voltage_new_old_ds,voltage_new_old_vars,num_channels,alpha);
+[p_alpha_uncorr, p_alpha_fdr, z_re_alpha]=group_analysis(alpha_ds,alpha_vars,num_channels,alpha);
+[p_theta_uncorr, p_theta_fdr, z_re_theta]=group_analysis(theta_ds,theta_vars,num_channels,alpha);
 
 save([results_path 'p/p_val_H2.mat'],'p_volt_fdr','p_volt_uncorr',...
     'p_alpha_fdr','p_alpha_uncorr',...
@@ -114,8 +109,8 @@ for i = 1:size(subs,1)
    pow_hit_miss_vars(i,:,:, :) = var(all_pow_hit,0,1) ./ size(all_pow_hit,1) + ...
         var(all_pow_miss,0,1) ./ size(all_pow_miss,1); 
 end
-[p_volt_uncorr, p_volt_fdr, z_re_volt] = group_analysis(voltage_hit_miss_ds,voltage_hit_miss_vars,alpha);
-[p_pow_uncorr, p_pow_fdr, z_re_pow]=group_analysis(pow_hit_miss_ds, pow_hit_miss_vars,alpha);
+[p_volt_uncorr, p_volt_fdr, z_re_volt] = group_analysis(voltage_hit_miss_ds,voltage_hit_miss_vars,num_channels,alpha);
+[p_pow_uncorr, p_pow_fdr, z_re_pow]=group_analysis(pow_hit_miss_ds, pow_hit_miss_vars,num_channels,alpha);
 
 save([results_path 'p/p_val_H3.mat'],'p_volt_fdr','p_volt_uncorr',...
     'p_pow_fdr','p_pow_uncorr', 'z_re_volt','z_re_pow')
