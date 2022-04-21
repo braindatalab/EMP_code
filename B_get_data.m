@@ -13,7 +13,7 @@ for i = 1:length(prep_list)
     disp('getting voltage..')
     data = cat(3,dat.trial{1,:});
     ntri = size(data,3);
-    data(65:66,:,:) = []; % removing mastoid channels
+    data([30 65:66],:,:) = []; % removing mastoid channels and PO3 (ref)
     nchan = size(data,1);
     all_voltage{i} = data;
     % remove baseline from voltage
