@@ -1,4 +1,5 @@
-function plot_topomap(data, layout)
+function plot_topomap(data)
+load('layout.mat')
 cfg = [];
 cfg.layout = layout;
 ft_data.dimord = 'chan_time';

@@ -80,7 +80,6 @@ end
 [p_volt_uncorr, p_volt_fdr, z_re_volt] = group_analysis(voltage_new_old_ds,voltage_new_old_vars,num_channels,alpha);
 [p_alpha_uncorr, p_alpha_fdr, z_re_alpha]=group_analysis(alpha_ds,alpha_vars,num_channels,alpha);
 [p_theta_uncorr, p_theta_fdr, z_re_theta]=group_analysis(theta_ds,theta_vars,num_channels,alpha);
-
 save([results_path 'p/p_val_H2.mat'],'p_volt_fdr','p_volt_uncorr',...
     'p_alpha_fdr','p_alpha_uncorr',...
     'p_theta_fdr','p_theta_uncorr', 'z_re_volt','z_re_alpha','z_re_theta')
@@ -113,4 +112,34 @@ end
 [p_pow_uncorr, p_pow_fdr, z_re_pow]=group_analysis(pow_hit_miss_ds, pow_hit_miss_vars,num_channels,alpha);
 
 save([results_path 'p/p_val_H3.mat'],'p_volt_fdr','p_volt_uncorr',...
+    'p_pow_fdr','p_pow_uncorr', 'z_re_volt','z_re_pow')
+%% Hypothesis 4
+% remembered or forgotten
+% EEG voltage (any channels/time)
+% power (any channels/time)
+for i = 1:size(subs,1)
+    disp(subs(i).name(1:end-4))
+    % use averaged voltage over 100 ms windows with 5 ms overlap
+    data_sub = all_voltage_window{i};
+    data_sub_power = permute(log(all_time_freq{i}),[2 1 3 4]);
+    % voltage for all time windows + all channels
+    voltage_rem = permute(data_sub(:, :, trial_ind(i).rem),[3 1 2]);
+    voltage_forg = permute(data_sub(:, :, trial_ind(i).forg), [3 1 2]);
+    % power for all time windows + all channels
+    all_pow_rem = data_sub_power(trial_ind(i).rem,:,:,:);
+    all_pow_forg = data_sub_power(trial_ind(i).forg,:,:,:);
+    % effect sizes calculation (mean and var)
+    % voltage
+    voltage_rem_forg_ds(i,:,:) = mean(voltage_rem,1) - mean(voltage_forg,1);  
+    voltage_rem_forg_vars(i,:,:) = var(voltage_rem,0,1)./ size(voltage_rem,1)+ ...
+        var(voltage_forg,0,1) ./ size(voltage_forg,1); 
+    % pow
+   pow_rem_forg_ds(i,:,:, :) = mean(all_pow_rem,1) - mean(all_pow_forg,1);  % mean difference of both classes per subject
+   pow_rem_forg_vars(i,:,:, :) = var(all_pow_rem,0,1) ./ size(all_pow_rem,1) + ...
+        var(all_pow_forg,0,1) ./ size(all_pow_forg,1); 
+end
+[p_volt_uncorr, p_volt_fdr, z_re_volt] = group_analysis(voltage_rem_forg_ds,voltage_rem_forg_vars,num_channels,alpha);
+[p_pow_uncorr, p_pow_fdr, z_re_pow] = group_analysis(pow_rem_forg_ds, pow_rem_forg_vars,num_channels,alpha);
+
+save([results_path 'p/p_val_H4.mat'],'p_volt_fdr','p_volt_uncorr',...
     'p_pow_fdr','p_pow_uncorr', 'z_re_volt','z_re_pow')
