@@ -9,12 +9,13 @@ function [p_uncorr, p_fdr, z_re_all] = group_analysis(ds, vars, nch, alpha)
     % uncorrected
     pval_eqw_re = pval_eqw_re';
     p_uncorr_tmp = pval_eqw_re;
-    p_uncorr_tmp(p_uncorr_tmp > alpha) = NaN;
+    %p_uncorr_tmp(p_uncorr_tmp > alpha) = NaN;
     % FDR
-    p_fdr_tmp = fdr(pval_eqw_re);
-    p_fdr_tmp(p_fdr_tmp > alpha) = NaN;
+    p_fdr_threshold = fdr(pval_eqw_re, alpha);
+    p_fdr = p_uncorr_tmp;
+    p_fdr(p_fdr > p_fdr_threshold) = NaN;
     % shape back
     p_uncorr = reshape(p_uncorr_tmp, nch, []);
-    p_fdr = reshape(p_uncorr_tmp, nch, []);
+    p_fdr = reshape(p_fdr, nch, []);
     z_re_all = reshape(z_re_all, nch, []);
 end

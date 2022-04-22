@@ -11,10 +11,11 @@ subs = dir([prep_path '*.mat']);
 load([subs(1).folder '/' subs(1).name])
 mstime = dat.time{1,1}*1000;
 fsample = dat.fsample;
-num_channels = 64;
 alpha = 0.05;
 %% Hypothesis 1
+hypothesis = 1;
 % N1 between man-made and natural images
+num_channels = size(all_voltage_bc{1},1);
 for i=1:size(subs,1)
     disp(subs(i).name(1:end-4))
     data_sub = all_voltage_bc{i};
@@ -37,15 +38,19 @@ for i=1:size(subs,1)
 end
 [p_n1_uncorr, p_n1_fdr, z_re] = group_analysis(ds, vars,num_channels,alpha);
 save([results_path 'p/p_val_H1.mat'],'p_n1_uncorr','p_n1_fdr', 'z_re');
+plot_topomap(-log10(p_n1_fdr));
 %% Hypothesis 2
+hypothesis = 2;
 % old vs new images
 % EEG voltage at fronto-central channels 
 % alpha at posterior channels
 % theta at fronto-central channels
 % get channel indices
-fc_chans = find(~cellfun(@isempty,regexp(dat.label,'^FC')));
-post_chans = [find(~cellfun(@isempty,regexp(dat.label,'^PO'))); ...
-    find(~cellfun(@isempty,regexp(dat.label,'^O')))];
+new_labels = dat.label;
+new_labels([30 65 66]) = [];
+fc_chans = find(~cellfun(@isempty,regexp(new_labels,'^FC')));
+post_chans = [find(~cellfun(@isempty,regexp(new_labels,'^PO'))); ...
+    find(~cellfun(@isempty,regexp(new_labels,'^O')))];
 % find the 300-500 ms time range
 load([results_path '/window_overlap_idx.mat'])
 windows = find(idx(:,1) > 30 & idx(:,1) < 50 & idx(:,2) < 52);
@@ -74,12 +79,12 @@ for i = 1:size(subs,1)
         var(theta_pow_old,0,1) ./ size(theta_pow_old,1); 
     % alpha
     alpha_ds(i,:,:) = mean(alpha_pow_new,1) - mean(alpha_pow_old,1);  % mean difference of both classes per subject
-    alpha_vars(i,:,:) = var(alpha_pow_new,0,1) ./ size(theta_pow_new,1) + ...
-        var(alpha_pow_old,0,1) ./ size(theta_pow_old,1); 
+    alpha_vars(i,:,:) = var(alpha_pow_new,0,1) ./ size(alpha_pow_new,1) + ...
+        var(alpha_pow_old,0,1) ./ size(alpha_pow_old,1); 
 end
-[p_volt_uncorr, p_volt_fdr, z_re_volt] = group_analysis(voltage_new_old_ds,voltage_new_old_vars,num_channels,alpha);
-[p_alpha_uncorr, p_alpha_fdr, z_re_alpha]=group_analysis(alpha_ds,alpha_vars,num_channels,alpha);
-[p_theta_uncorr, p_theta_fdr, z_re_theta]=group_analysis(theta_ds,theta_vars,num_channels,alpha);
+[p_volt_uncorr, p_volt_fdr, z_re_volt] = group_analysis(voltage_new_old_ds,voltage_new_old_vars,length(fc_chans),alpha);
+[p_alpha_uncorr, p_alpha_fdr, z_re_alpha]=group_analysis(alpha_ds,alpha_vars,length(post_chans),alpha);
+[p_theta_uncorr, p_theta_fdr, z_re_theta]=group_analysis(theta_ds,theta_vars,length(fc_chans),alpha);
 save([results_path 'p/p_val_H2.mat'],'p_volt_fdr','p_volt_uncorr',...
     'p_alpha_fdr','p_alpha_uncorr',...
     'p_theta_fdr','p_theta_uncorr', 'z_re_volt','z_re_alpha','z_re_theta')
@@ -87,6 +92,7 @@ save([results_path 'p/p_val_H2.mat'],'p_volt_fdr','p_volt_uncorr',...
 % hit or miss
 % EEG voltage (any channels/time)
 % power (any channels/time)
+hypothesis = 3;
 for i = 1:size(subs,1)
     disp(subs(i).name(1:end-4))
     % use averaged voltage over 100 ms windows with 5 ms overlap
@@ -114,6 +120,7 @@ end
 save([results_path 'p/p_val_H3.mat'],'p_volt_fdr','p_volt_uncorr',...
     'p_pow_fdr','p_pow_uncorr', 'z_re_volt','z_re_pow')
 %% Hypothesis 4
+hypothesis = 4;
 % remembered or forgotten
 % EEG voltage (any channels/time)
 % power (any channels/time)

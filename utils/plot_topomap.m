@@ -4,7 +4,7 @@ cfg = [];
 cfg.layout = layout;
 ft_data.dimord = 'chan_time';
 ft_data.label = layout.label(1:64);
-ft_data.avg = data;
+ft_data.avg = [data(1:29); NaN; data(30:end)]; %insert a NaN at the reference channel
 ft_data.time = 0;
 ft_topoplotER(cfg,ft_data);
 colorbar
