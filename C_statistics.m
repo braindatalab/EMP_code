@@ -1,5 +1,6 @@
-%%load files
+%% perform statistical analysis 
 set_paths
+p_path = [results_path 'p/fdr_indiv/'];
 % load trial indices
 load([results_path 'trial_ind.mat'])
 % load baseline corrected ERP data
@@ -37,7 +38,7 @@ for i=1:size(subs,1)
     vars(i, :) = v_1 ./ size(n1_manmade,1) + v_2 ./ size(n1_natural,1); 
 end
 [p_n1_uncorr1, p_n1_fdr1, z_re1] = group_analysis(ds, vars,num_channels,alpha);
-save([results_path 'p/p_val_H1.mat'],'p_n1_uncorr1','p_n1_fdr1', 'z_re1');
+save([p_path 'p_val_H1.mat'],'p_n1_uncorr1','p_n1_fdr1', 'z_re1');
 plot_topomap(-log10(p_n1_fdr1));
 %% Hypothesis 2
 hypothesis = 2;
@@ -81,11 +82,11 @@ for i = 1:size(subs,1)
     alpha_ds(i,:,:) = mean(alpha_pow_new,1) - mean(alpha_pow_old,1);  % mean difference of both classes per subject
     alpha_vars(i,:,:) = var(alpha_pow_new,0,1) ./ size(alpha_pow_new,1) + ...
         var(alpha_pow_old,0,1) ./ size(alpha_pow_old,1); 
-end
+end%%load files
 [p_volt_uncorr2, p_volt_fdr2, z_re_volt2] = group_analysis(voltage_new_old_ds,voltage_new_old_vars,length(fc_chans),alpha);
 [p_alpha_uncorr2, p_alpha_fdr2, z_re_alpha2]=group_analysis(alpha_ds,alpha_vars,length(post_chans),alpha);
 [p_theta_uncorr2, p_theta_fdr2, z_re_theta2]=group_analysis(theta_ds,theta_vars,length(fc_chans),alpha);
-save([results_path 'p/p_val_H2.mat'],'p_volt_fdr2','p_volt_uncorr2',...
+save([p_path 'p_val_H2.mat'],'p_volt_fdr2','p_volt_uncorr2',...
     'p_alpha_fdr2','p_alpha_uncorr2',...
     'p_theta_fdr2','p_theta_uncorr2', 'z_re_volt2','z_re_alpha2','z_re_theta2')
 %% Hypothesis 3
@@ -116,7 +117,7 @@ for i = 1:size(subs,1)
 end
 [p_volt_uncorr3, p_volt_fdr3, z_re_volt3] = group_analysis(voltage_hit_miss_ds,voltage_hit_miss_vars,num_channels,alpha);
 [p_pow_uncorr3, p_pow_fdr3, z_re_pow3]=group_analysis(pow_hit_miss_ds, pow_hit_miss_vars,num_channels,alpha);
-save([results_path 'p/p_val_H3.mat'],'p_volt_fdr3','p_volt_uncorr3',...
+save([p_path 'p_val_H3.mat'],'p_volt_fdr3','p_volt_uncorr3',...
     'p_pow_fdr3','p_pow_uncorr3', 'z_re_volt3','z_re_pow3')
 %% Hypothesis 4
 hypothesis = 4;
@@ -147,5 +148,7 @@ end
 [p_volt_uncorr4, p_volt_fdr4, z_re_volt4] = group_analysis(voltage_rem_forg_ds,voltage_rem_forg_vars,num_channels,alpha);
 [p_pow_uncorr4, p_pow_fdr4, z_re_pow4] = group_analysis(pow_rem_forg_ds, pow_rem_forg_vars,num_channels,alpha);
 
-save([results_path 'p/p_val_H4.mat'],'p_volt_fdr4','p_volt_uncorr4',...
+save([p_path 'p_val_H4.mat'],'p_volt_fdr4','p_volt_uncorr4',...
     'p_pow_fdr4','p_pow_uncorr4', 'z_re_volt4','z_re_pow4')
+%% run global FDR analysis
+global_FDR;
