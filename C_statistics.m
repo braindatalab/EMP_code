@@ -1,6 +1,6 @@
 %% perform statistical analysis 
 set_paths
-p_path = [results_path 'p/fdr_indiv/'];
+p_path = [results_path 'p/indiv_fdr/'];
 % load trial indices
 load([results_path 'trial_ind.mat'])
 % load baseline corrected ERP data
@@ -39,7 +39,7 @@ for i=1:size(subs,1)
 end
 [p_n1_uncorr1, p_n1_fdr1, z_re1] = group_analysis(ds, vars,num_channels,alpha);
 save([p_path 'p_val_H1.mat'],'p_n1_uncorr1','p_n1_fdr1', 'z_re1');
-plot_topomap(-log10(p_n1_fdr1));
+%plot_topomap(-log10(p_n1_fdr1));
 %% Hypothesis 2
 hypothesis = 2;
 % old vs new images
@@ -83,12 +83,12 @@ for i = 1:size(subs,1)
     alpha_vars(i,:,:) = var(alpha_pow_new,0,1) ./ size(alpha_pow_new,1) + ...
         var(alpha_pow_old,0,1) ./ size(alpha_pow_old,1); 
 end%%load files
-[p_volt_uncorr2, p_volt_fdr2, z_re_volt2] = group_analysis(voltage_new_old_ds,voltage_new_old_vars,length(fc_chans),alpha);
-[p_alpha_uncorr2, p_alpha_fdr2, z_re_alpha2]=group_analysis(alpha_ds,alpha_vars,length(post_chans),alpha);
-[p_theta_uncorr2, p_theta_fdr2, z_re_theta2]=group_analysis(theta_ds,theta_vars,length(fc_chans),alpha);
+[p_volt_uncorr2, p_volt_fdr2, z_volt2] = group_analysis(voltage_new_old_ds,voltage_new_old_vars,length(fc_chans),alpha);
+[p_alpha_uncorr2, p_alpha_fdr2, z_alpha2]=group_analysis(alpha_ds,alpha_vars,length(post_chans),alpha);
+[p_theta_uncorr2, p_theta_fdr2, z_theta2]=group_analysis(theta_ds,theta_vars,length(fc_chans),alpha);
 save([p_path 'p_val_H2.mat'],'p_volt_fdr2','p_volt_uncorr2',...
     'p_alpha_fdr2','p_alpha_uncorr2',...
-    'p_theta_fdr2','p_theta_uncorr2', 'z_re_volt2','z_re_alpha2','z_re_theta2')
+    'p_theta_fdr2','p_theta_uncorr2', 'z_volt2','z_alpha2','z_theta2')
 %% Hypothesis 3
 % hit or miss
 % EEG voltage (any channels/time)
@@ -115,10 +115,10 @@ for i = 1:size(subs,1)
    pow_hit_miss_vars(i,:,:, :) = var(all_pow_hit,0,1) ./ size(all_pow_hit,1) + ...
         var(all_pow_miss,0,1) ./ size(all_pow_miss,1); 
 end
-[p_volt_uncorr3, p_volt_fdr3, z_re_volt3] = group_analysis(voltage_hit_miss_ds,voltage_hit_miss_vars,num_channels,alpha);
-[p_pow_uncorr3, p_pow_fdr3, z_re_pow3]=group_analysis(pow_hit_miss_ds, pow_hit_miss_vars,num_channels,alpha);
+[p_volt_uncorr3, p_volt_fdr3, z_volt3] = group_analysis(voltage_hit_miss_ds,voltage_hit_miss_vars,num_channels,alpha);
+[p_pow_uncorr3, p_pow_fdr3, z_pow3]=group_analysis(pow_hit_miss_ds, pow_hit_miss_vars,num_channels,alpha);
 save([p_path 'p_val_H3.mat'],'p_volt_fdr3','p_volt_uncorr3',...
-    'p_pow_fdr3','p_pow_uncorr3', 'z_re_volt3','z_re_pow3')
+    'p_pow_fdr3','p_pow_uncorr3', 'z_volt3','z_pow3')
 %% Hypothesis 4
 hypothesis = 4;
 % remembered or forgotten
@@ -145,10 +145,31 @@ for i = 1:size(subs,1)
    pow_rem_forg_vars(i,:,:, :) = var(all_pow_rem,0,1) ./ size(all_pow_rem,1) + ...
         var(all_pow_forg,0,1) ./ size(all_pow_forg,1); 
 end
-[p_volt_uncorr4, p_volt_fdr4, z_re_volt4] = group_analysis(voltage_rem_forg_ds,voltage_rem_forg_vars,num_channels,alpha);
-[p_pow_uncorr4, p_pow_fdr4, z_re_pow4] = group_analysis(pow_rem_forg_ds, pow_rem_forg_vars,num_channels,alpha);
+[p_volt_uncorr4, p_volt_fdr4, z_volt4] = group_analysis(voltage_rem_forg_ds,voltage_rem_forg_vars,num_channels,alpha);
+[p_pow_uncorr4, p_pow_fdr4, z_pow4] = group_analysis(pow_rem_forg_ds, pow_rem_forg_vars,num_channels,alpha);
 
 save([p_path 'p_val_H4.mat'],'p_volt_fdr4','p_volt_uncorr4',...
-    'p_pow_fdr4','p_pow_uncorr4', 'z_re_volt4','z_re_pow4')
+    'p_pow_fdr4','p_pow_uncorr4', 'z_volt4','z_pow4')
 %% run global FDR analysis
-global_FDR;
+disp('performing global false discovery rate correction..')
+% concatenate into column vector
+p_all = vertcat(p_n1_uncorr1, p_volt_uncorr2(:),p_theta_uncorr2(:),p_alpha_uncorr2(:),...
+    p_volt_uncorr3(:),p_pow_uncorr3(:),p_volt_uncorr4(:),p_pow_uncorr4(:));
+% get fdr threshold
+p_th = fdr(p_all, 0.05);
+% correct
+p_n1_global = mask_fdr(p_n1_uncorr1, p_th);
+p_volt_global2 = mask_fdr(p_volt_uncorr2, p_th);
+p_volt_global3 = mask_fdr(p_volt_uncorr3, p_th);
+p_volt_global4 = mask_fdr(p_volt_uncorr4, p_th);
+p_alpha_global2 = mask_fdr(p_alpha_uncorr2, p_th);
+p_theta_global2 = mask_fdr(p_theta_uncorr2, p_th);
+p_pow_global3 = mask_fdr(p_pow_uncorr3, p_th);
+p_pow_global4 = mask_fdr(p_pow_uncorr4, p_th);
+save([results_path 'p/all_p_global_FDR.mat'],'p_n1_global','p_volt_global2',...
+    'p_volt_global3','p_volt_global4','p_alpha_global2','p_theta_global2',...
+    'p_pow_global3','p_pow_global4')
+function out = mask_fdr(data,threshold)
+    data(data > threshold) = NaN;
+    out = data;
+end
