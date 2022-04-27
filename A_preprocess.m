@@ -22,7 +22,6 @@ for i = 1:length(subj_list)
     % scene_nat = triggers.trigger(strcmp(triggers.scene_category,'natural'));
     info.subject_id = subj;
     %% set preprocessing parameters
-    % TODO: discuss parameters, examine data to decide on artifact correction
     cfg = [];
     cfg.datafile = filepath;
     cfg.bpfilter = 'yes'; % band-pass filter
@@ -42,7 +41,7 @@ for i = 1:length(subj_list)
     eeg_data = eeg_data - eog_data*(eog_data\eeg_data);
     data.trial{1,1} = eeg_data';
     %% reject outlying channels
-    % this part detects outlying channels for each sensor type
+    % this part detects outlying channels 
     % (outliers: 3 scaled median deviations from the median)
     % and interpolates them using a weighted average of
     % neighbors
