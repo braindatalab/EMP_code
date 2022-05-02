@@ -9,7 +9,6 @@ function [p_uncorr, p_fdr, z_re_all] = group_analysis(ds, vars, nch, alpha)
     % uncorrected
     pval_eqw_re = pval_eqw_re';
     p_uncorr_tmp = pval_eqw_re;
-    %p_uncorr_tmp(p_uncorr_tmp > alpha) = NaN;
     % FDR
     p_fdr_threshold = fdr(pval_eqw_re, alpha);
     p_fdr = p_uncorr_tmp;

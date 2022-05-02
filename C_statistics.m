@@ -150,7 +150,7 @@ end
 
 save([p_path 'p_val_H4.mat'],'p_volt_fdr4','p_volt_uncorr4',...
     'p_pow_fdr4','p_pow_uncorr4', 'z_volt4','z_pow4')
-%% run global FDR analysis
+%% run global FDR correction
 disp('performing global false discovery rate correction..')
 % concatenate into column vector
 p_all = vertcat(p_n1_uncorr1, p_volt_uncorr2(:),p_theta_uncorr2(:),p_alpha_uncorr2(:),...

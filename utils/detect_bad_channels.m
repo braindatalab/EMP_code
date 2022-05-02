@@ -6,7 +6,6 @@ end
 outliers = isoutlier(varchans); %three scaled median absolute deviations
 if any(outliers)
     bad_channels_fig = figure('visible','off');
-    %subplot(1,2,1)
     hold on
     plot(1:length(chanlist),varchans,'o')
     plot(find(outliers),varchans(outliers),'or')
@@ -21,8 +20,6 @@ if any(outliers)
     neighbours = ft_prepare_neighbours(cfg, data);
     cfg = [];
     cfg.method = 'weighted';
-    % FT bug - badchannel needs to have a name since it's compared to
-    % data.label and not just an index
     badchan_cell = data.label(badchans);
     cfg.badchannel = badchan_cell;
     cfg.neighbours = neighbours;
