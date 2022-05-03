@@ -1,4 +1,4 @@
-user_path = '/user'; %replaced user path with 'user'
+user_path = '/home/space/uniml/veronika'; %replaced user path with 'user'
 data_path = [user_path '/data/EMP/'];
 eegpath = [data_path 'eeg_eeglab/'];
 results_path = [user_path '/results/EMP/'];

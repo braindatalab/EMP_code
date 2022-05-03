@@ -2,25 +2,42 @@
 %% prepare the data
 % save preprocessed EEG data, rejected trials and channels
 set_paths
-output_path = [results_path 'data_for_submission/'];
+output_path = [results_path 'data_for_submission_final/'];
 subs = dir([prep_path '*.mat']);
 for i = 1:length(subs)
     subj_id = subs(i).name(1:end-4);
     disp(subj_id)
-    folder_name = [output_path subj_id];
+    folder_name = [output_path 'Subj' subj_id(4:end) '/'];
     load([subs(i).folder '/' subs(i).name])
     load([report_path '/' subj_id '/info.mat'])
-    if ~isfolder(folder_nvame)
+    if ~isfolder(folder_name)
         mkdir(folder_name)
     end
     % save file in fieldtrip format
-    save([folder_name '/' subs(i).name],'dat');
+    f1 = [folder_name 'Pre-processed time series data'];
+    if ~isfolder(f1)
+        mkdir(f1)
+    end
+    save([f1 '/' subs(i).name],'dat');
     % make text file with rejected trials
-    fid = fopen([folder_name '/rejected_trials.txt'],'w');
+    f2 = [folder_name 'Excluded trials (txt files)'];
+    if ~isfolder(f2)
+        mkdir(f2)
+    end
+    fid = fopen([f2 '/' subj_id '_excluded_trials.txt'],'w');
     fprintf(fid, '%d ', info.badtrials);
+    fclose(fid);
     % make text file with rejected and interpolated channels
-    fid = fopen([folder_name '/rejected_interpolated_channels.txt'],'w');
-    fprintf(fid, '%d ', info.badchans);
+    f3 = [folder_name 'Interpolated channels (txt files)'];
+    if ~isfolder(f3)
+        mkdir(f3)
+    end
+    fid = fopen([f3 '/' subj_id '_removed_and_interpolated_channels.txt'],'w');
+    ch = info.badchans;
+    ch(ch>64)=[]; % don't include non-EEG
+    ch(ch==30)=[]; % don't include ref
+    fprintf(fid, '%s ', dat.label{ch});
+    fclose(fid);
 end
 %% export statistics in a csv file for final report
 set_paths
