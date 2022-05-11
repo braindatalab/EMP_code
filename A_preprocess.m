@@ -1,4 +1,5 @@
 %% EMP data analysis script
+% Authors: V. Shamova, S. Haufe, N. Agarwal
 % set paths to data and output folder
 set_paths
 % FieldTrip
@@ -16,7 +17,7 @@ for i = 1:length(subj_list)
     % read events
     ev = ft_read_event(filepath);
     % event triggers
-    triggers = readtable([datapath 'TriggerTable.csv'] );
+    triggers = readtable([data_path 'TriggerTable.csv'] );
     % example for getting specific event triggers
     % scene_mm = triggers.trigger(strcmp(triggers.scene_category,'man-made'));
     % scene_nat = triggers.trigger(strcmp(triggers.scene_category,'natural'));
