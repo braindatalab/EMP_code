@@ -1,4 +1,5 @@
 %% get voltage and time-frequency data
+% Authors: V. Shamova, S. Haufe, N. Agarwal
 set_paths
 prep_list = dir([prep_path 'EMP*']);
 %% read data
@@ -37,7 +38,7 @@ for i = 1:length(prep_list)
     for c = 1:nchan
         fprintf('channel %d\n', c)
         for t = 1:ntri
-            data_i = squeeze(data(c,22:end,t));
+            data_i = squeeze(data_bc(c,22:end,t));
             % 100 ms windows, 50 ms overlap
             [p,f,time] = spectrogram(data_i,10,5,50,100);
             p_all(c,t,:,:) = p;
