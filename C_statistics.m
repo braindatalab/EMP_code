@@ -1,6 +1,11 @@
 %% perform statistical analysis 
+% Authors: V. Shamova, S. Haufe, N. Agarwal
 set_paths
+fprintf('loading data... \n')
 p_path = [results_path 'p/indiv_fdr/'];
+if ~isfolder(p_path)
+    mkdir(p_path)
+end
 % load trial indices
 load([results_path 'trial_ind.mat'])
 % load baseline corrected ERP data
@@ -15,6 +20,7 @@ fsample = dat.fsample;
 alpha = 0.05;
 %% Hypothesis 1
 hypothesis = 1;
+fprintf('hypothesis %d\n', hypothesis)
 % N1 between man-made and natural images
 num_channels = size(all_voltage_bc{1},1);
 for i=1:size(subs,1)
@@ -42,6 +48,7 @@ save([p_path 'p_val_H1.mat'],'p_n1_uncorr1','p_n1_fdr1', 'z_re1');
 %plot_topomap(-log10(p_n1_fdr1));
 %% Hypothesis 2
 hypothesis = 2;
+fprintf('hypothesis %d\n', hypothesis)
 % old vs new images
 % EEG voltage at fronto-central channels 
 % alpha at posterior channels
@@ -94,6 +101,7 @@ save([p_path 'p_val_H2.mat'],'p_volt_fdr2','p_volt_uncorr2',...
 % EEG voltage (any channels/time)
 % power (any channels/time)
 hypothesis = 3;
+fprintf('hypothesis %d\n', hypothesis)
 for i = 1:size(subs,1)
     disp(subs(i).name(1:end-4))
     % use averaged voltage over 100 ms windows with 5 ms overlap
@@ -121,6 +129,7 @@ save([p_path 'p_val_H3.mat'],'p_volt_fdr3','p_volt_uncorr3',...
     'p_pow_fdr3','p_pow_uncorr3', 'z_volt3','z_pow3')
 %% Hypothesis 4
 hypothesis = 4;
+fprintf('hypothesis %d\n', hypothesis)
 % remembered or forgotten
 % EEG voltage (any channels/time)
 % power (any channels/time)

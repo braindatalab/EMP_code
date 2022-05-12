@@ -97,10 +97,10 @@ for i = 1:length(subj_list)
     info.time = timer;
     ft_write_data([prep_path subj], data_seg_rs, 'dataformat','matlab')
     save([sub_report_path 'info.mat'],'info');
-    preproc_report(info,sub_report_path);
+    % preproc_report(info,sub_report_path);
     % convert tex to pdf
-    command = ['cd ', sub_report_path,'; ', 'yes " " | /usr/bin/pdflatex  ',...
-        'report.tex;'];
-    system(command);
+    % command = ['cd ', sub_report_path,'; ', 'yes " " | /usr/bin/pdflatex  ',...
+    %    'report.tex;'];
+    % system(command);
     close all
 end
