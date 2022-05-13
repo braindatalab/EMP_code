@@ -1,6 +1,6 @@
 # EEGManyPipelines
 
-This repository contains the code for the [EEGManyPipelines](https://www.eegmanypipelines.org/) project from the Braindatalab team.
+This repository contains the code for the [EEGManyPipelines](https://www.eegmanypipelines.org/) project from the Brain Data Lab team.
 
 The data is assumed to be in EEGLAB format. The main functions are: 
 
